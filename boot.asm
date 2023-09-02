@@ -1,10 +1,20 @@
-ORG 0x7c00
+ORG 0
 BITS 16
 
+jmp 0x7c0:start ; To set code segment
+
 start:
+    cli     ; Clear interrupts
+    mov ax, 0x7c0
+    mov ds, ax      ;Setting up segments which are later used by instructions
+    mov es, ax
+    mov ax, 0x00
+    mov ss, ax
+    mov sp, 0x7c00
+    sti     ; Enable interrupts
     mov si, message
     call print
-    jmp $
+    jmp $      
 
 print:
     mov bx, 0
