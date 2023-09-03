@@ -62,6 +62,7 @@ gdt_descriptor:
     dd gdt_start               ; Offset to the GDT
 
 [BITS 32]
+; Driver to read from disk
 load32:
     mov eax, 1          ; Starting sector from which we want to load from. Sector 0 is the boot sector
     mov ecx, 100        ; Total number of sectors to be loaded
