@@ -71,6 +71,12 @@ load32:
     mov ss, ax         ; Set SS to the data segment
     mov ebp, 0x00200000; Set the base pointer
     mov esp, ebp       ; Set the stack pointer to the base pointer
+
+    ;Enable the A20 line
+    in al, 0x92         ; Read from the bus uses 'in'
+    or al, 2
+    out 0x92, al        ; Write to the bus
+
     jmp $              ; Infinite loop (halt)
 
 times 510-($ - $$) db 0   ; Fill the remaining space in the bootloader with zeros
