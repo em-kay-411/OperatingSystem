@@ -1,0 +1,62 @@
+1. `ORG 0x7C00` and `BITS 16`: These directives set the origin to memory address 0x7C00 and configure the assembly mode to 16-bit.
+
+2. `CODE_SEG` and `DATA_SEG` are equates used to calculate segment values for the Global Descriptor Table (GDT).
+
+3. `_start`: This is the entry point of the bootloader. It starts with a short jump (`jmp short start`) to skip over the NOP instruction and reach the actual `start` label.
+
+4. `times 33 db 0`: This reserves 33 bytes of space with zeros. This is often done to ensure that the boot sector is 512 bytes in total.
+
+5. `start`: This is where the main bootloader code begins.
+
+6. `step2`: This section disables interrupts (`cli`), sets up segment registers (`ds`, `es`, `ss`), and initializes the stack pointer (`sp`). It then enables interrupts (`sti`).
+
+7. `.load_protected`: This section appears to be part of a transition to 32-bit protected mode. It loads the GDT (`lgdt`), sets the PE (Protection Enable) bit in the CR0 register, and jumps to `load32`.
+
+8. GDT (Global Descriptor Table): This table defines two segments, `gdt_code` for code and `gdt_data` for data. These segments have appropriate access rights and base/limit values. The GDT is used for memory segmentation.
+
+9. `gdt_descriptor`: This is a GDT descriptor that holds the size and offset of the GDT.
+
+10. `[BITS 32]` and `load32`: This part of the code is intended to transition to 32-bit mode. It sets segment registers, initializes the stack, and enters an infinite loop.
+
+11. `times 510-($ - $$) db 0`: This pads the bootloader to ensure it is exactly 512 bytes in size. The boot signature (`dw 0xAA55`) follows, indicating that this sector is bootable.
+
+This code is designed to be placed in the first sector of a bootable disk (commonly the MBR - Master Boot Record). When the computer boots from this disk, the BIOS will load and execute this code. The bootloader initializes the system, sets up the environment, and can transition into 32-bit mode if needed, leaving the system ready to load and execute an operating system.
+
+Let's break down the code step by step:
+
+1. `load32:`: This is a label that defines the entry point of the code.
+
+2. `mov eax, 1`: This sets the value of the EAX register to 1. EAX is used to specify the starting sector from which data should be loaded.
+
+3. `mov ecx, 100`: This sets the ECX register to 100. ECX is used to specify the total number of sectors to be loaded.
+
+4. `mov edi, 0x0100000`: This sets the EDI register to 0x0100000, which is the memory address where the data will be loaded.
+
+5. `call ata_lba_read`: This is a function call to `ata_lba_read`, which is responsible for reading data from the hard disk.
+
+6. `jmp CODE_SEG:0x0100000`: After loading the data, this instruction jumps to the memory location where the loaded code is expected to start executing. `CODE_SEG` is assumed to be a segment selector.
+
+Now, let's dive into the `ata_lba_read` function:
+
+1. `mov ebx, eax`: This instruction makes a backup of the LBA (Logical Block Address) in the EBX register.
+
+2. The next several instructions are used to send various pieces of information to the hard disk controller (assuming it's an ATA/IDE drive) in order to initiate the read operation. These instructions manipulate registers and use the `out` instruction to write data to specific I/O ports. The steps include:
+
+   - Selecting the master drive (`or eax, 0xE0`).
+   - Sending the highest 8 bits of the LBA (`shr eax, 24`).
+   - Sending the total number of sectors to read.
+   - Sending various parts of the LBA (8 bits at a time).
+
+3. `mov dx, 0x1F7` and `mov al, 0x20` are used to send a command to the hard disk controller to initiate the read operation. `0x20` represents the "read sectors" command.
+
+4. `.next_sector:`: This is a label that marks the beginning of a loop to read multiple sectors.
+
+5. `.try_again:`: This is another label used within the loop to retry reading if necessary. It checks the status of the hard disk controller to determine if the operation is complete.
+
+6. Inside the loop, it sets `ecx` to 256, indicating that it wants to read 256 words (512 bytes) at a time, and then uses the `rep insw` instruction to read data from the hard disk into memory.
+
+7. `pop ecx` restores the original value of `ecx` before decrementing it with `loop .next_sector`. This loop continues until all sectors have been read.
+
+8. `ret`: This returns control to the calling code.
+
+In summary, this code is a low-level assembly language routine for reading data from a hard disk into memory. It first sends the necessary commands and parameters to the hard disk controller and then enters a loop to read the data sector by sector. After reading all the specified sectors, control is returned to the calling code, which is expected to be the loaded kernel.

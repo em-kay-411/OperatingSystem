@@ -66,7 +66,7 @@ load32:
     mov eax, 1          ; Starting sector from which we want to load from. Sector 0 is the boot sector
     mov ecx, 100        ; Total number of sectors to be loaded
     mov edi, 0x0100000  ; Address of the sector to be loaded
-    call ata_lba_read
+    call ata_lba_read   ; Load the kernel
     jmp CODE_SEG:0x0100000
 
 ata_lba_read:
