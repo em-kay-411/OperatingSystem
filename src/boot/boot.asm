@@ -63,21 +63,65 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
-    mov ax, DATA_SEG   ; Load the data segment index
-    mov ds, ax         ; Set DS to the data segment
-    mov fs, ax         ; Set FS to the data segment
-    mov es, ax         ; Set ES to the data segment
-    mov gs, ax         ; Set GS to the data segment
-    mov ss, ax         ; Set SS to the data segment
-    mov ebp, 0x00200000; Set the base pointer
-    mov esp, ebp       ; Set the stack pointer to the base pointer
+    mov eax, 1          ; Starting sector from which we want to load from. Sector 0 is the boot sector
+    mov ecx, 100        ; Total number of sectors to be loaded
+    mov edi, 0x0100000  ; Address of the sector to be loaded
+    call ata_lba_read
+    jmp CODE_SEG:0x0100000
 
-    ;Enable the A20 line
-    in al, 0x92         ; Read from the bus uses 'in'
-    or al, 2
-    out 0x92, al        ; Write to the bus
+ata_lba_read:
+    mov ebx, eax        ; Back up the lba
+    ; Send the highest 8 bits of the lba to the hard disk controller
+    shr eax, 24         ; Shift eax register 24 bits to the right. Now the eax contains the highest 8 bits
+    or eax, 0xE0        ; Selects the masters drive
+    mov dx, 0x1F6
+    out dx, al
+    ; Finished sending the higest 8 bits of LBA
 
-    jmp $              ; Infinite loop (halt)
+    ; Send the total sectors to read
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al
+    ; Finishes sending the total sectors to read
+
+    ; Send few more bits to LBA
+    mov eax, ebx        ;Storing the backup lba
+    mov dx, 0x1F3
+    out dx, al
+
+    ; Send more bits of the LBA
+    mov dx, 0x1F4
+    mov eax, ebx
+    shr eax, 8
+    out dx, al
+
+    ;Send upper 16 bits
+    mov dx, 0x1F5
+    mov eax, ebx
+    shr eax, 16
+    out dx, al
+
+    mov dx, 0x1F7
+    mov al, 0x20
+    out dx, al
+
+.next_sector:
+    push ecx
+
+.try_again:
+    mov dx, 0x1F7
+    in al, dx
+    test al, 8
+    jz .try_again
+
+    ; We need to read 256 words at a time
+    mov ecx, 256
+    mov dx, 0x1F0
+    rep insw
+    pop ecx
+    loop .next_sector
+    ret
+
 
 times 510-($ - $$) db 0   ; Fill the remaining space in the bootloader with zeros
 dw 0xAA55                ; Boot signature (magic number)
