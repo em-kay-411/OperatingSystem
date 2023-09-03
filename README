@@ -1,0 +1,23 @@
+The Makefile appears to be a build script for compiling and assembling source code into binary files for a simple operating system or kernel. Let's break down what each part of this Makefile does:
+
+1. `FILES = ./build/kernel.asm.o`: This line defines a variable `FILES` and sets it to the path of the `kernel.asm.o` object file.
+
+2. `all: ./bin/boot.bin ./bin/kernel.bin`: This is the default target, which specifies that the two binary files `boot.bin` and `kernel.bin` should be built when you run `make` without any specific target.
+
+3. `rm -rf ./bin/os.bin`: This line removes the `os.bin` file if it exists. This file appears to be the final output file where both `boot.bin` and `kernel.bin` will be combined.
+
+4. The following lines use the `dd` command to concatenate `boot.bin` and `kernel.bin` binary files and then append 100 blocks of zeros to create `os.bin`. This is a common practice in operating system development to create a bootable image.
+
+5. `./bin/kernel.bin: $(FILES)`: This is a target for building `kernel.bin` from the dependencies listed in `$(FILES)`.
+
+6. `i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o`: This line uses the `i686-elf-ld` linker to link the object file `$(FILES)` into a single output file `kernelfull.o`. The `-g` flag adds debugging information, and `-relocatable` indicates that the output should be relocatable.
+
+7. `i686-elf-gcc -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o`: This line uses the `i686-elf-gcc` compiler to generate the final `kernel.bin` binary. It specifies a linker script (`./src/linker.ld`) and includes the `kernelfull.o` object file. The `-ffreestanding` flag indicates that the code is for a freestanding environment (no standard library), `-O0` disables optimizations, and `-nostdlib` specifies that no standard libraries should be linked.
+
+8. `./bin/boot.bin: ./src/boot/boot.asm`: This is a target for building `boot.bin` from the `boot.asm` source file using the NASM assembler. It generates a binary output file.
+
+9. `./build/kernel.asm.o: ./src/kernel.asm`: This is a target for assembling `kernel.asm` into an object file `kernel.asm.o` using NASM.
+
+10. `clean`: This target can be used to remove all generated files and intermediate artifacts. It deletes `boot.bin`, `kernel.bin`, `os.bin`, the object file specified in `$(FILES)`, and `kernelfull.o`.
+
+To build your OS, you can run `make all`. To clean up the generated files, you can run `make clean`. Make sure you have the necessary tools (NASM, i686-elf-gcc, i686-elf-ld) installed and that your project directory structure matches the paths specified in the Makefile.
