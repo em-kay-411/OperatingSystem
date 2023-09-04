@@ -3,7 +3,6 @@
 extern kernel_main
 
 global _start
-global problem
 
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
@@ -27,7 +26,5 @@ _start:
 
     jmp $              ; Infinite loop (halt)
 
-problem:
-    int 0
 
 times 512-($ - $$) db 0

@@ -94,6 +94,4 @@ void kernel_main()
     print("Hello World\nNew line");
 
     idt_init();
-    
-    problem();
 }
