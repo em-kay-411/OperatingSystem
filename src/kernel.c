@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "idt/idt.h"
+#include "io/io.h"
 
 // uint16_t is a 16-bit integer
 uint16_t *video_mem = 0;
@@ -94,4 +95,5 @@ void kernel_main()
     print("Hello World\nNew line");
 
     idt_init();
+
 }
