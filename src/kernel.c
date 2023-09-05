@@ -90,23 +90,10 @@ void print(const char *str)
 
 void kernel_main()
 {
-    terminal_initialise();
-    print("Hello World\nNew line");
+    terminal_initialise();       // Initialise terminal
+    print("Hello World\nNew line\n");
 
-    kheap_init();
-    idt_init();
-
-    void * ptr = kmalloc(50);
-    void * ptr2 = kmalloc(5000);  
-
-    void * ptr3 = kmalloc(5600);
-    kfree(ptr);
-    void *ptr4 = kmalloc(50); 
-
-
-
-    if(ptr || ptr2|| ptr3 || ptr4){
-
-    }
-
+    kheap_init();               //Initialise Heap
+    idt_init();                 // Initialise Interrupt Descriptor Table
+    enable_interrupts();        // Enable interrupts
 }
