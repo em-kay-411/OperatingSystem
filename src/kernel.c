@@ -6,6 +6,8 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
+#include "fs/parser.h"
+#include "string/string.h"
 
 // uint16_t is a 16-bit integer
 uint16_t *video_mem = 0;
@@ -19,19 +21,6 @@ uint16_t terminal_col = 0;
 uint16_t terminal_make_char(char c, char color)
 {
     return (color << 8) | c;
-}
-
-// size_t is the data type used to represent size in bytes
-size_t strlen(const char *str)
-{
-    size_t ans = 0;
-
-    while (str[ans])
-    {
-        ans++;
-    }
-
-    return ans;
 }
 
 // Function to put character on a specific location on the terminal
@@ -104,4 +93,9 @@ void kernel_main()
     paging_switch(get_page_directory(kernel_chunk));                // Switch to kernel paging chunk
     enable_paging();            // Enable Paging
     enable_interrupts();        // Enable interrupts
+
+    struct path_root* root = parse_path("0:/bin/shell", NULL);
+    if(root){
+
+    }
 }

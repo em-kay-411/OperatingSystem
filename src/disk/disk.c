@@ -41,6 +41,7 @@ void disk_search_and_init(){
     disk.sector_size = SECTOR_SIZE;
 }
 
+// Only for disk 0, which is the primary disk
 struct disk * get_disk(int index){
     if(index != 0){
         return 0;
