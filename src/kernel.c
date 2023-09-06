@@ -8,6 +8,7 @@
 #include "disk/disk.h"
 #include "fs/parser.h"
 #include "string/string.h"
+#include "disk/streamer.h"
 
 // uint16_t is a 16-bit integer
 uint16_t *video_mem = 0;
@@ -94,8 +95,9 @@ void kernel_main()
     enable_paging();            // Enable Paging
     enable_interrupts();        // Enable interrupts
 
-    struct path_root* root = parse_path("0:/bin/shell", NULL);
-    if(root){
-
-    }
+    struct disk_stream* stream = new_stream(0);
+    diskstreamer_seek(stream, 0x201);
+    unsigned char c = 0;
+    diskstreamer_read(stream, &c, 1);
+    while(1){}
 }
