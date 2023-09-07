@@ -9,6 +9,7 @@
 #include "fs/parser.h"
 #include "string/string.h"
 #include "disk/streamer.h"
+#include "fs/file.h"
 
 // uint16_t is a 16-bit integer
 uint16_t *video_mem = 0;
@@ -87,7 +88,8 @@ void kernel_main()
     terminal_initialise();       // Initialise terminal
     print("Hello World\nNew line\n");
 
-    kheap_init();               //Initialise Heap
+    kheap_init();               // Initialise Heap
+    fs_init();                  // Initialise filesystems
     disk_search_and_init();     // Search the disk and initialise it
     idt_init();                 // Initialise Interrupt Descriptor Table
     kernel_chunk = paging_new_4gb(IS_WRITABLE | IS_PRESENT | ACCESS_FROM_ALL);  // Setup paging
@@ -95,9 +97,7 @@ void kernel_main()
     enable_paging();            // Enable Paging
     enable_interrupts();        // Enable interrupts
 
-    struct disk_stream* stream = new_stream(0);
-    diskstreamer_seek(stream, 0x201);
-    unsigned char c = 0;
-    diskstreamer_read(stream, &c, 1);
+    char buf[20];
+    strcpy(buf, "hello");
     while(1){}
 }

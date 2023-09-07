@@ -4,10 +4,12 @@
 #include "memory/heap/kheap.h"
 #include "status.h"
 #include "kernel.h"
+#include "fat/fat16.h"
 
 struct filesystem* filesystems[MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[MAX_FILE_DESCRIPTORS];
 
+// Function to get free filesystem
 static struct filesystem** get_free_filesystem(){
     int i = 0;
     for(i = 0; i < MAX_FILESYSTEMS; i++){
@@ -19,6 +21,7 @@ static struct filesystem** get_free_filesystem(){
     return 0;
 }
 
+// Function to insert new filesystem
 void fs_insert_filesystem(struct filesystem* filesystem){
     struct filesystem ** fs;
     fs = get_free_filesystem();
@@ -33,7 +36,7 @@ void fs_insert_filesystem(struct filesystem* filesystem){
 
 // Function to load the statically implemented filesystems
 static void fs_static_load(){
-    //fs_insert_filesystem(fat16_init());
+    fs_insert_filesystem(fat16_init());
 }
 
 void fs_load(){

@@ -20,8 +20,10 @@ enum{
 
 struct disk;
 typedef void*(*FS_OPEN_FUNCTION) (struct disk* disk, struct path_part* path, FILE_MODE mode);
-typedef int (*FS_RESOLVE_FUNCTION) (struct disk* disk);
+typedef int (*FS_RESOLVE_FUNCTION) (struct disk* disk);             // Will return 0 if the filesystem with which a disk is being resolved has the same filesystem
 
+// Structure defining different filesystems. Each filesystem will have a resolve function of itself and an open function
+// These filesystems can be introduced by the user or developer
 struct filesystem{
     // If the provided disk is using its filesystem, it must resolve 0
     FS_RESOLVE_FUNCTION resolve;
@@ -33,10 +35,7 @@ struct filesystem{
 struct file_descriptor{
     int index;
     struct filesystem * filesystem;
-
     void * private;
-
-
     struct disk* disk;
 };
 
