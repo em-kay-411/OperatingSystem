@@ -1,11 +1,14 @@
 #ifndef DISK_H
 #define DISK_H
 
+#include "fs/file.h"
+
 typedef unsigned int DISK_TYPE;
 #define DISK_TYPE_REAL 0        // Represents the real physical hard disk
 struct disk{
     DISK_TYPE type;
     int sector_size;
+    struct filesystem* filesystem;
 };
 
 int disk_read_sector(int lba, int total, void *buf);
