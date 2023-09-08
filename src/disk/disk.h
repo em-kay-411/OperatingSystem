@@ -5,10 +5,12 @@
 
 typedef unsigned int DISK_TYPE;
 #define DISK_TYPE_REAL 0        // Represents the real physical hard disk
-struct disk{
+struct disk{    
     DISK_TYPE type;
     int sector_size;
+    int id;
     struct filesystem* filesystem;
+    void * fs_private;
 };
 
 int disk_read_sector(int lba, int total, void *buf);

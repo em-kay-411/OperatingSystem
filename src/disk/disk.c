@@ -10,7 +10,7 @@ struct disk disk;
 int disk_read_sector(int lba, int total, void * buf){
 
     // Sending bits to the port to instruct it to allow us to read from the disk
-    outb(0x1F6, (lba > 24) | 0xE0);
+    outb(0x1F6, (lba >> 24) | 0xE0);
     outb(0x1F2, total);
     outb(0x1F3, (unsigned char)(lba & 0xff));
     outb(0x1F4, (unsigned char)(lba >> 8));
@@ -40,6 +40,7 @@ void disk_search_and_init(){
     disk.type = DISK_TYPE_REAL;
     disk.sector_size = SECTOR_SIZE;
     disk.filesystem = fs_resolve(&disk);
+    disk.id = 0;
 }
 
 // Only for disk 0, which is the primary disk

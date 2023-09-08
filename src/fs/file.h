@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include "parser.h"
+#include <stdint.h>
 
 typedef unsigned int FILE_SEEK_MODE;
 enum{
