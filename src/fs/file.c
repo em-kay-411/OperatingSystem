@@ -4,7 +4,9 @@
 #include "memory/heap/kheap.h"
 #include "status.h"
 #include "kernel.h"
+#include "disk/disk.h"
 #include "fat/fat16.h"
+#include "string/string.h"
 
 struct filesystem* filesystems[MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[MAX_FILE_DESCRIPTORS];
@@ -75,6 +77,7 @@ static struct file_descriptor* get_file_descriptor(int fd){
     return file_descriptors[index];
 }
 
+// Function to check which filesystem resolves to the current disk and returns it
 struct filesystem* fs_resolve(struct disk * disk){
     struct filesystem * fs = 0;
 
@@ -88,6 +91,80 @@ struct filesystem* fs_resolve(struct disk * disk){
     return fs;
 }
 
-int fopen(const char * filename, const char * mode){
-    return -EIO;
+FILE_MODE get_mode_by_string(const char * str){
+    FILE_MODE mode = FILE_MODE_INVALID;
+    if(strncmp(str, "r", 1) == 0){
+        mode = FILE_MODE_READ;
+    }
+    else if(strncmp(str, "w", 1) == 0){
+        mode = FILE_MODE_WRITE;
+    }
+    else if(strncmp(str, "a", 1) == 0){
+        mode = FILE_MODE_APPEND;
+    }
+    
+    
+    return mode;
+}
+
+// Funciton to use the correct file system to open the file
+int fopen(const char * filename, const char * mode_str){
+    int res = 0;
+
+    struct path_root* root_path = parse_path(filename, NULL);
+    if(!root_path){
+        res = -EINVARG;
+        goto out;
+    }
+
+    // We cannto have just the root path
+    if(!root_path->first){
+        res = -EINVARG;
+        goto out;
+    }
+
+    // Checking if the drive is valid
+    struct disk* disk = get_disk(root_path->drive_no);
+    if(!disk){
+        res = -EIO;
+        goto out;
+    }
+
+    // check if the disk has a filesystem
+    if(!disk->filesystem){
+        res = -EIO;
+        goto out;
+    }
+
+    // Get the file mode
+    FILE_MODE mode = get_mode_by_string(mode_str);
+    if(mode == FILE_MODE_INVALID){
+        res = -EINVARG;
+        goto out;
+    }
+
+    void * descriptor_private_data = disk->filesystem->open(disk, root_path->first, mode);
+    if(ISERR(descriptor_private_data)){
+        res = ERROR_I(descriptor_private_data);
+        goto out;
+    }
+
+    struct file_descriptor* desc = 0;
+    res = new_file_descriptor(&desc);
+    if(res < 0){
+        goto out;
+    }
+
+    desc->filesystem = disk->filesystem;
+    desc->private = descriptor_private_data;
+    desc->disk = disk;
+    res = desc->index;
+
+out:
+// fopen is not allowed to return negative values
+    if(res < 0){
+        res = 0;
+    }
+
+    return res;
 }
